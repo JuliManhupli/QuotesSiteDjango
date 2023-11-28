@@ -1,0 +1,19 @@
+{% extends 'quotes_site/base.html' %}
+
+{% block title %}
+{{ author.fullname }}
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-center" style="margin-top: 50px;">
+    <div class="mx-auto" style="width: 70rem;">
+        <h1>{{ author.fullname }}</h1>
+
+        <div class="alert alert-info d-inline-block" role="alert">
+            {{ author.born_date }} {{ author.born_location }}
+        </div>
+        <p style="text-align: justify;">{{ author.description }}</p>
+    </div>
+</div>
+{% endblock %}
