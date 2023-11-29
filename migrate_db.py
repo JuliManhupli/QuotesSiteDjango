@@ -1,8 +1,8 @@
 import os
-
+from bson import ObjectId  # Import ObjectId from bson module
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from sqlalchemy import create_engine, Column, String, ARRAY, ForeignKey
+from sqlalchemy import create_engine, Column, String, ARRAY, ForeignKey, Integer
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import IntegrityError
 
@@ -25,7 +25,7 @@ Base = declarative_base()
 # Оголошення моделей SQLAlchemy
 class Author(Base):
     __tablename__ = 'quotes_author'
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     fullname = Column(String, nullable=False)
     born_date = Column(String)
     born_location = Column(String)
@@ -34,9 +34,9 @@ class Author(Base):
 
 class Quote(Base):
     __tablename__ = 'quotes_quote'
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     tags = Column(ARRAY(String))
-    author_id = Column(String, ForeignKey('quotes_author.id'))
+    author_id = Column(Integer, ForeignKey('quotes_author.id'))
     quote = Column(String, nullable=False)
 
 
@@ -50,36 +50,39 @@ session = Session()
 
 def migrate_data():
     # Міграція авторів
+    mongo_author_id_mapping = {}
     for author_doc in authors_collection.find():
-        author = Author(
-            id=str(author_doc['_id']),
-            fullname=author_doc['fullname'],
-            born_date=author_doc.get('born_date', ''),
-            born_location=author_doc.get('born_location', ''),
-            description=author_doc.get('description', '')
-        )
-        session.add(author)
+        existing_author = session.query(Author).filter_by(fullname=author_doc['fullname']).first()
 
-    session.commit()
+        if not existing_author:
+            author = Author(
+                fullname=author_doc['fullname'],
+                born_date=author_doc.get('born_date', ''),
+                born_location=author_doc.get('born_location', ''),
+                description=author_doc.get('description', '')
+            )
+            session.add(author)
+            session.commit()
+            mongo_author_id_mapping[str(author_doc['_id'])] = author.id
 
     # Міграція цитат
     for quote_doc in quotes_collection.find():
-        quote = Quote(
-            id=str(quote_doc['_id']),
-            tags=quote_doc['tags'],
-            author_id=str(quote_doc['author']),
-            quote=quote_doc['quote']
-        )
-        session.add(quote)
+        existing_quote = session.query(Quote).filter_by(quote=quote_doc['quote']).first()
+
+        if not existing_quote:
+            quote = Quote(
+                tags=quote_doc['tags'],
+                author_id=mongo_author_id_mapping.get(str(quote_doc['author']), None),
+                quote=quote_doc['quote']
+            )
+            session.add(quote)
 
     try:
         session.commit()
     except IntegrityError:
-        # Обробка конфліктів унікальності (наприклад, якщо дублюється primary key)
         session.rollback()
 
     session.close()
-
 
 if __name__ == "__main__":
     migrate_data()

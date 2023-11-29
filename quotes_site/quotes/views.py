@@ -1,9 +1,12 @@
 from collections import Counter
 
 from django.core.paginator import PageNotAnInteger, EmptyPage, Paginator
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from itertools import chain
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
+from .forms import AuthorForm, QuoteForm
 from .models import Quote, Author
 
 
@@ -44,3 +47,29 @@ def top_tags(request):
     tag_counts = Counter(all_tags)
     top_tags = tag_counts.most_common(10)
     return render(request, "quotes/top_tags.html", context={'top_tags': top_tags})
+
+
+@login_required
+def add_author(request):
+    form = AuthorForm(instance=Author())
+    if request.method == 'POST':
+        form = AuthorForm(request.POST, request.FILES, instance=Author())
+        if form.is_valid():
+            author = form.save(commit=False)
+            author.save()
+            messages.success(request, f"Author added successfully!")
+            return redirect(to="quotes:home")
+    return render(request, 'quotes/author_form.html', context={"form": form})
+
+
+@login_required
+def add_quotes(request):
+    form = QuoteForm(instance=Quote())
+    if request.method == 'POST':
+        form = QuoteForm(request.POST, request.FILES, instance=Quote())
+        if form.is_valid():
+            quote = form.save(commit=False)
+            quote.save()
+            messages.success(request, f"Quote added successfully!")
+            return redirect(to="quotes:home")
+    return render(request, 'quotes/quotes_form.html', context={"form": form})

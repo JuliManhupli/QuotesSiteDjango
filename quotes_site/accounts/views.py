@@ -50,6 +50,7 @@ class LoginView(View):
             return redirect(to="quotes:home")
         return render(request, self.template_name, {"form": form})
 
+
 class LogoutView(View):
     def get(self, request):
         logout(request)
