@@ -11,9 +11,10 @@
     {% for message in messages %}
         <h3 class="justify-content-center" style="margin-left: 50px; margin-bottom: 25px"> {{ message }}</h3>
     {% endfor %}
-
+    {% if author.user == request.user %}
     <a class="btn btn-secondary" href="{% url 'quotes:delete_author' author.fullname %}" style="float: right; margin-left: 10px">Delete</a>
     <a class="btn btn-primary" href="{% url 'quotes:edit_author' author.fullname %}" style="float: right;">Edit</a>
+    {% endif %}
 </div>
 <div class="justify-content-center" style="margin-top: 50px;">
 

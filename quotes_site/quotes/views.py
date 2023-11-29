@@ -6,6 +6,7 @@ from itertools import chain
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
+from .decorators import user_is_added
 from .forms import AuthorForm, QuoteForm
 from .models import Quote, Author
 
@@ -56,6 +57,7 @@ def add_quotes(request):
         form = QuoteForm(request.POST, request.FILES, instance=Quote())
         if form.is_valid():
             quote = form.save(commit=False)
+            quote.user = request.user
             quote.save()
             messages.success(request, f"Quote added successfully!")
             return redirect(to="quotes:home")
@@ -63,6 +65,7 @@ def add_quotes(request):
 
 
 @login_required
+@user_is_added
 def edit_quote(request, quote_id):
     quote = get_object_or_404(Quote, id=quote_id)
     if request.method == 'POST':
@@ -78,6 +81,7 @@ def edit_quote(request, quote_id):
 
 
 @login_required
+@user_is_added
 def delete_quote(request, quote_id):
     quote = get_object_or_404(Quote, id=quote_id)
 
@@ -96,6 +100,7 @@ def add_author(request):
         form = AuthorForm(request.POST, request.FILES, instance=Author())
         if form.is_valid():
             author = form.save(commit=False)
+            author.user = request.user
             author.save()
             messages.success(request, f"Author added successfully!")
             return redirect(to="quotes:home")
@@ -103,6 +108,7 @@ def add_author(request):
 
 
 @login_required
+@user_is_added
 def edit_author(request, author):
     author = get_object_or_404(Author, fullname=author)
 
@@ -119,6 +125,7 @@ def edit_author(request, author):
 
 
 @login_required
+@user_is_added
 def delete_author(request, author):
     author = get_object_or_404(Author, fullname=author)
 
