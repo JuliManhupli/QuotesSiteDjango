@@ -50,19 +50,6 @@ def top_tags(request):
 
 
 @login_required
-def add_author(request):
-    form = AuthorForm(instance=Author())
-    if request.method == 'POST':
-        form = AuthorForm(request.POST, request.FILES, instance=Author())
-        if form.is_valid():
-            author = form.save(commit=False)
-            author.save()
-            messages.success(request, f"Author added successfully!")
-            return redirect(to="quotes:home")
-    return render(request, 'quotes/author_form.html', context={"form": form})
-
-
-@login_required
 def add_quotes(request):
     form = QuoteForm(instance=Quote())
     if request.method == 'POST':
@@ -99,4 +86,45 @@ def delete_quote(request, quote_id):
         messages.success(request, f"Quote deleted successfully!")
         return redirect(to="quotes:home")
 
-    return render(request, 'quotes/delete_quote.html', context={"quote": quote})
+    return render(request, 'quotes/delete_form.html', context={"quote": quote})
+
+
+@login_required
+def add_author(request):
+    form = AuthorForm(instance=Author())
+    if request.method == 'POST':
+        form = AuthorForm(request.POST, request.FILES, instance=Author())
+        if form.is_valid():
+            author = form.save(commit=False)
+            author.save()
+            messages.success(request, f"Author added successfully!")
+            return redirect(to="quotes:home")
+    return render(request, 'quotes/author_form.html', context={"form": form})
+
+
+@login_required
+def edit_author(request, author):
+    author = get_object_or_404(Author, fullname=author)
+
+    if request.method == 'POST':
+        form = AuthorForm(request.POST, instance=author)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Author updated successfully!")
+            return redirect('quotes:author', author=author.fullname)
+    else:
+        form = AuthorForm(instance=author)
+
+    return render(request, 'quotes/author_form.html', {'form': form, 'author': author})
+
+
+@login_required
+def delete_author(request, author):
+    author = get_object_or_404(Author, fullname=author)
+
+    if request.method == 'POST':
+        author.delete()
+        messages.success(request, "Author deleted successfully!")
+        return redirect('quotes:home')
+
+    return render(request, 'quotes/delete_form.html', {'author': author})
