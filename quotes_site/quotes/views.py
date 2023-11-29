@@ -1,7 +1,7 @@
 from collections import Counter
 
 from django.core.paginator import PageNotAnInteger, EmptyPage, Paginator
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from itertools import chain
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -73,3 +73,30 @@ def add_quotes(request):
             messages.success(request, f"Quote added successfully!")
             return redirect(to="quotes:home")
     return render(request, 'quotes/quotes_form.html', context={"form": form})
+
+
+@login_required
+def edit_quote(request, quote_id):
+    quote = get_object_or_404(Quote, id=quote_id)
+    if request.method == 'POST':
+        form = QuoteForm(request.POST, instance=quote)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Quote edited successfully!")
+            return redirect('quotes:home')
+    else:
+        form = QuoteForm(instance=quote)
+
+    return render(request, 'quotes/quotes_form.html', {'form': form})
+
+
+@login_required
+def delete_quote(request, quote_id):
+    quote = get_object_or_404(Quote, id=quote_id)
+
+    if request.method == 'POST':
+        quote.delete()
+        messages.success(request, f"Quote deleted successfully!")
+        return redirect(to="quotes:home")
+
+    return render(request, 'quotes/delete_quote.html', context={"quote": quote})

@@ -26,6 +26,9 @@ Quotes
             <a class="card-link" href="{% url 'quotes:tag' tag %}">{{ tag }}</a>
             {% endif %}
             {% endfor %}
+            <a class="btn btn-secondary" href="{% url 'quotes:delete_quote' quote.id %}" style="float: right; margin-left: 10px">Delete</a>
+            <a class="btn btn-primary" href="{% url 'quotes:edit_quote' quote.id %}" style="float: right;">Edit</a>
+            </div>
         </div>
     </div>
     {% endfor %}
