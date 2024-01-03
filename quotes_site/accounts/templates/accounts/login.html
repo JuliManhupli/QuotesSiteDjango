@@ -28,6 +28,9 @@ Login
             </label>
             <span>{{form.errors.password}}</span>
         </div>
+        <div class="mb-3">
+             <a class="nav-link" href="{% url 'accounts:password_reset' %}">Forgot Password?</a>
+        </div>
         <button type="submit" class="btn btn-primary">Submit</button>
         <button type="reset" class="btn btn-secondary">Reset</button>
     </form>
